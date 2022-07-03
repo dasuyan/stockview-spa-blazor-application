@@ -1,0 +1,49 @@
+﻿#welcome{
+    text-align: center;
+    font-family: Arial;
+    text-transform: uppercase;
+}
+input {
+    text-align: center;
+    font-family: Arial;
+    text-transform: uppercase;
+    margin: auto;
+    display: block;
+}
+em{
+    align-content: center;
+}
+table {
+    width: 100%;
+    scroll-padding-top: 20px;
+    margin: 1em;
+}
+
+td {
+    border-bottom: 1px solid #ddd;
+}
+
+#data:hover {
+     background-image: linear-gradient(to right, rgb(5, 39, 103) 0%, #3a0647 70%);
+     color: white;
+}
+
+thead {
+    font-weight: bold;
+}
+
+
+button {
+    background-color: rgb(5, 39, 103);
+    color: white;
+    width: 200px;
+    height: 40px;
+    font-size-adjust: inherit;
+    border-radius: 15px;
+    margin: auto;
+    display: block;
+    border-color: white;
+}
+    button:hover {
+        background-color: #3a0647;
+    }

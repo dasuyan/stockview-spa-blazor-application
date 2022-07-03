@@ -1,0 +1,31 @@
+﻿#welcome {
+    text-align: center;
+    font-family: Arial, serif;
+    text-transform: uppercase;
+}
+table {
+    width: 50%
+}
+
+td {
+    text-align: center;
+    padding: 20px;
+}
+#button-table {
+    width: 100%;
+}
+button {
+    background-color: rgb(5, 39, 103);
+    color: white;
+    width: 200px;
+    height: 40px;
+    font-size-adjust: inherit;
+    border-radius: 15px;
+    margin: auto;
+    display: block;
+    border-color: white;
+}
+
+    button:hover {
+        background-color: #3a0647;
+    }

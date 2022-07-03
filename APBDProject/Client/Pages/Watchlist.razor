@@ -1,0 +1,119 @@
+﻿@page "/watchlist"
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+
+<h3 id="welcome">Watchlist:</h3>
+@if (_companies == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_companies.Length == 0)
+{
+    <div>Your watchlist is currently empty. When you add stock positions in the "Tickers" tab, they will appear here.</div>
+}
+else
+{
+    <SfGrid DataSource="@_companies" AllowPaging="true" AllowSorting="true">
+        <GridPageSettings PageSize="5"></GridPageSettings>
+        <GridColumns>
+            <GridColumn Field=@nameof(CompanyGet.Symbol) HeaderText="Symbol" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+            <GridColumn Field=@nameof(CompanyGet.Name) HeaderText="Name" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+            <GridColumn Field=@nameof(CompanyGet.Country) HeaderText="Country" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+            <GridColumn Field=@nameof(CompanyGet.Exchange) HeaderText="Exchange" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+            
+             <GridColumn Width="50" HeaderText="Details">
+                 <Template>
+                     @{
+                         var company = context as CompanyGet;
+                         <SfButton @onclick="@(_ => GoToDetails(company?.Symbol))" CssClass="e-danger">Details</SfButton>
+            
+                     }
+                 </Template>
+                 </GridColumn>
+            <GridColumn HeaderText="Remove" Width="50">
+                <Template>
+                    @{
+                        var company = context as CompanyGet;
+                            <SfButton @onclick="@(_ => RemoveFromWatchlist(company))" CssClass="e-primary">Remove</SfButton>
+                    }
+                </Template>
+            </GridColumn>
+           
+        </GridColumns>
+    </SfGrid>
+    if (_selectedCompany != null)
+    {
+                            <h3>@_selectedCompany.Symbol Details:</h3>
+        <SfTab>
+            <TabItems>
+                <TabItem>
+                    <ChildContent>
+                        <TabHeader Text="Company information"></TabHeader>
+                    </ChildContent>
+                    <ContentTemplate>
+                        <div>
+                            <p><b>@_selectedCompany.Symbol</b></p>
+                            <p><b>@_selectedCompany.Name</b></p>
+                            <p><a href="@_selectedCompany.HomepageUrl"><b>@_selectedCompany.HomepageUrl</b></a></p>
+                            <p>@_selectedCompany.Description</p>
+                        </div>
+                    </ContentTemplate>
+                </TabItem>
+                <TabItem>
+                    <ChildContent>
+                        <TabHeader Text="OHLC Chart"></TabHeader>
+                    </ChildContent>
+                    <ContentTemplate>
+                        <div>
+                            <div class="stock-chart">
+                                @if(_data.Any()){
+                                    <StockChart Data="_data" @ref="_chartContainer" />}
+                                </div>
+                        </div>
+                    </ContentTemplate>
+                </TabItem>
+            </TabItems>
+        </SfTab>
+    }
+}
+
+@code {
+    private string _user;
+    private CompanyGet[] _companies;
+    private CompanyGet _selectedCompany;
+    private StockChart _chartContainer;
+
+    private List<OhlcForChart> _data;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity != null) _user = authState.User.Identity.Name;
+            _companies = await Http.GetFromJsonAsync<CompanyGet[]>($"api/Watchlist/{_user}");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    
+    private async Task GoToDetails(string company)
+    {
+        _selectedCompany = await Http.GetFromJsonAsync<CompanyGet>($"api/Company/companyInfo/{company}");
+        var serverResponse = await Http.GetFromJsonAsync<OhlcForChart[]>($"api/Company/ohlcInfo/{company}");
+        _data = new List<OhlcForChart>();
+        if (serverResponse != null) _data.AddRange(serverResponse);
+        _chartContainer?.Chart.Refresh();
+    }
+    
+    private async Task RemoveFromWatchlist(CompanyGet company)
+    {
+        await Http.PostAsJsonAsync($"api/Watchlist/delete/{_user}", company);
+        //await Http.DeleteAsync();
+        _companies = await Http.GetFromJsonAsync<CompanyGet[]>($"api/Watchlist/{_user}");
+    }
+}

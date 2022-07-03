@@ -1,0 +1,64 @@
+﻿@using Pages
+@using Syncfusion.Blazor.Data
+
+<div class="col-lg-12 control-section">
+    <div class="control-wrapper">
+        <label class="example-label">Company symbol</label>
+        <div class="label-search">
+            <SfAutoComplete @onkeypress="@(KeyPressed)" Width="70%" TValue="CompanyGet" TItem="CompanyGet" Placeholder="@SearchedCompanySymbol" @bind-Value="@SearchedCompany">
+                <SfDataManager Url="api/company" Adaptor="Adaptors.WebApiAdaptor" CrossDomain="true" />
+                <AutoCompleteTemplates TItem="CompanyGet">
+                    <ItemTemplate>
+                        <div class="search-field">
+                            <span class="ac-symbol">
+                                @context.Symbol
+                            </span>
+                            <span class="ac-name">
+                                @context.Name
+                            </span>
+                        </div>
+                    </ItemTemplate>
+                </AutoCompleteTemplates>
+                <AutoCompleteFieldSettings  Value="Symbol" />
+            </SfAutoComplete>
+            <button class="btn btn-primary" @onclick="SearchClicked">SEARCH</button>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private CompanyGet SearchedCompany { get; set; }
+    [Parameter]
+    public EventCallback<string> OnSearchButtonClicked { get; set; }
+    [Parameter]
+    public string SearchedCompanySymbol { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        SearchedCompanySymbol ??= "Search for a company";
+        return base.OnInitializedAsync();
+    }
+
+    private async Task SearchClicked()
+    {
+        try
+        {
+            await OnSearchButtonClicked.InvokeAsync(SearchedCompany.Symbol);
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+    }
+
+    private async Task KeyPressed(KeyboardEventArgs args)
+    {
+        Console.WriteLine(args.Key);
+        if (args.Key == "Enter")
+        {
+            await SearchClicked();
+        }
+    }
+
+}

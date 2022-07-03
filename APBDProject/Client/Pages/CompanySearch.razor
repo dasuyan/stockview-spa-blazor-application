@@ -1,0 +1,22 @@
+﻿@page "/Dashboard"
+
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h3 id="welcome">Search for companies and stocks</h3>
+<div class="search-bar"><TickerSearchbar SearchedCompanySymbol="@SearchedTickerParam" OnSearchButtonClicked="OpenDetails" /></div>
+
+@code {
+    [Parameter] public string SearchedTickerParam { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+    
+    private void OpenDetails(string symbol)
+    {
+        NavigationManager.NavigateTo($"/details/{symbol}");
+    }
+}

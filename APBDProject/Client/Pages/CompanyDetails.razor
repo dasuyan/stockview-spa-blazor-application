@@ -1,0 +1,80 @@
+﻿@page "/details/{Symbol}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>@Symbol Details: </h3>
+
+@if (Company == null)
+{
+    <a>Loading...</a>
+}
+else
+{
+    <button @onclick="@(AddToWatchlist)" id="special">Add to watchlist</button>
+    <SfTab>
+        <TabItems>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Company Details"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <div>
+                        <p><b>@Company.Symbol</b></p>
+                        <p><b>@Company.Name</b></p>
+                        <p><a href="@Company.HomepageUrl"><b>@Company.HomepageUrl</b></a></p>
+                        <p>@Company.Description</p>
+                    </div>
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="OHLC Chart"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <div>
+                        <div class="stock-chart">
+                            
+                            @if (_data.Any())
+                            {
+                                <StockChart Data="_data"/>
+                            }
+                        </div>
+                    </div>
+                </ContentTemplate>
+            </TabItem>
+        </TabItems>
+    </SfTab>
+}
+
+@code {
+
+    [Parameter]
+    public string Symbol { get; set; }
+    private CompanyGet Company { get; set; }
+    private readonly List<OhlcForChart> _data = new();
+    
+    private string _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity != null) _user = authState.User.Identity.Name;
+
+        Company = await Http.GetFromJsonAsync<CompanyGet>($"/api/Company/companyInfo/{Symbol}");
+        
+        var ohlcForCompany = await Http.GetFromJsonAsync<OhlcForChart[]>($"/api/Company/ohlcInfo/{Symbol}");
+
+        if (ohlcForCompany != null)
+        {
+            _data.AddRange(ohlcForCompany);
+
+            await Http.PostAsJsonAsync($"/api/Company", new CompanyWithOhlc {ohlcs = ohlcForCompany, ticker = Company});
+        }
+    }
+    
+    private async Task AddToWatchlist()
+    {
+        await Http.PostAsJsonAsync($"/api/Watchlist/{_user}", Company);
+    }
+}

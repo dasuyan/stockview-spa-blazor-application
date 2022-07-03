@@ -1,0 +1,14 @@
+﻿<SfStockChart @ref="Chart" Title="@Title">
+    <StockChartCrosshairSettings Enable="true" LineType="LineType.Vertical"></StockChartCrosshairSettings>
+    <StockChartTooltipSettings Enable="true" Shared="true"></StockChartTooltipSettings>
+    <StockChartSeriesCollection>
+        <StockChartSeries DataSource="@Data" Type="ChartSeriesType.HiloOpenClose" XName="Date" High="h" Low="l" Open="o" Close="c" Volume="v" />
+    </StockChartSeriesCollection>
+</SfStockChart>
+
+@code {
+    public SfStockChart Chart;
+        private const string Title = "OHCL";
+
+    [Parameter] public List<OhlcForChart> Data { get; set; }
+}
